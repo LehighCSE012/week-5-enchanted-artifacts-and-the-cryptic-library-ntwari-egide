@@ -1,9 +1,11 @@
 import random
 
 def display_player_status(player_stats):
+    """Displays the player's current health and attack power."""
     print(f"\nPlayer Status: Health = {player_stats['health']}, Attack = {player_stats['attack']}")
 
 def discover_artifact(player_stats, artifacts, artifact_name):
+    """Handles discovering an artifact and applying its effects to the player."""
     if artifact_name in artifacts:
         artifact = artifacts[artifact_name]
         print(f"You found {artifact_name}: {artifact['description']}")
@@ -22,6 +24,7 @@ def discover_artifact(player_stats, artifacts, artifact_name):
     return player_stats, artifacts
 
 def find_clue(clues, new_clue):
+    """Handles discovering and adding new clues to the set."""
     if new_clue in clues:
         print("You already know this clue.")
     else:
@@ -30,6 +33,7 @@ def find_clue(clues, new_clue):
     return clues
 
 def combat_encounter(player_stats, monster_health, has_treasure):
+    """Simulates a combat encounter between the player and a monster."""
     while player_stats['health'] > 0 and monster_health > 0:
         print("You attack the monster!")
         monster_health -= player_stats['attack']
@@ -45,32 +49,47 @@ def combat_encounter(player_stats, monster_health, has_treasure):
         return None
 
 def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
+    """Simulates a player navigating through a dungeon."""
     for room in dungeon_rooms:
-        print(f"\nYou enter: {room[0]}")
-        
-        if room[2] == "library":
-            print("A vast library filled with ancient, cryptic texts.")
-            possible_clues = [
-                "The treasure is hidden where the dragon sleeps.",
-                "The key lies with the gnome.",
-                "Beware the shadows.",
-                "The amulet unlocks the final door."
-            ]
-            selected_clues = random.sample(possible_clues, 2)
-            for clue in selected_clues:
-                clues = find_clue(clues, clue)
-            
-            if "staff_of_wisdom" in inventory:
-                print("Your staff reveals the true meaning of these clues! You can bypass a puzzle challenge.")
-        
+        if not isinstance(room, tuple) or len(room) != 4:
+            raise TypeError("Each dungeon room must be a tuple of 4 elements: (name, item, challenge_type, challenge_outcome)")
+
+        room_name, item, challenge_type, challenge_outcome = room
+
+        # Add item to inventory if present
+        if item:
+            inventory.append(item)
+
+        # Process different challenge types
+        if challenge_type == "puzzle":
+            if isinstance(challenge_outcome, tuple) and len(challenge_outcome) == 3:
+                success, fail, health_penalty = challenge_outcome
+                print(success if random.random() < 0.5 else fail)
+                player_stats["health"] -= health_penalty  # Deduct health on failure
+            else:
+                raise ValueError("Invalid challenge_outcome format for puzzle.")
+
+        elif challenge_type == "trap":
+            if isinstance(challenge_outcome, tuple) and len(challenge_outcome) == 3:
+                success, fail, health_penalty = challenge_outcome
+                print(success if random.random() < 0.5 else fail)
+                player_stats["health"] -= health_penalty  # Deduct health for trap
+            else:
+                raise ValueError("Invalid challenge_outcome format for trap.")
+
+        elif challenge_type == "library":
+            new_clue = f"Clue found in {room_name}"
+            find_clue(clues, new_clue)
+
     return player_stats, inventory, clues
 
 def main():
+    """Main function that runs the adventure game."""
     dungeon_rooms = [
-        ("Dusty library", "key", "puzzle", ("Solved puzzle!", "Puzzle unsolved.", -5)),
-        ("Narrow passage, creaky floor", "torch", "trap", ("Avoided trap!", "Triggered trap!", -10)),
-        ("Grand hall, shimmering pool", "healing potion", "none", None),
-        ("Small room, locked chest", "treasure", "puzzle", ("Cracked code!", "Chest locked.", -5)),
+        ("Dusty Library", "key", "puzzle", ("Solved puzzle!", "Puzzle unsolved.", -5)),
+        ("Narrow Passage, Creaky Floor", "torch", "trap", ("Avoided trap!", "Triggered trap!", -10)),
+        ("Grand Hall, Shimmering Pool", "healing potion", "none", None),
+        ("Small Room, Locked Chest", "treasure", "puzzle", ("Cracked code!", "Chest locked.", -5)),
         ("Cryptic Library", None, "library", None)
     ]
     
@@ -94,11 +113,10 @@ def main():
         if treasure_obtained_in_combat:
             inventory.append("treasure")
         
-        if random.random() < 0.3:
-            if artifacts:
-                artifact_name = random.choice(list(artifacts.keys()))
-                player_stats, artifacts = discover_artifact(player_stats, artifacts, artifact_name)
-                display_player_status(player_stats)
+        if random.random() < 0.3 and artifacts:
+            artifact_name = random.choice(list(artifacts.keys()))
+            player_stats, artifacts = discover_artifact(player_stats, artifacts, artifact_name)
+            display_player_status(player_stats)
         
         if player_stats['health'] > 0:
             player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues)
@@ -110,4 +128,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
