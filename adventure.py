@@ -12,6 +12,16 @@ def acquire_item(player_stats, item):
         player_stats['health'] += 20
     return player_stats
 
+def display_inventory(inventory):
+    # Check if inventory is empty
+    if not inventory:
+        print("Your inventory is empty.")
+    else:
+        # Display inventory items
+        print(f"Your inventory: ")
+        for index, item in enumerate(inventory, start=1):
+            print(f"{index}. {item}")
+
 def discover_artifact(player_stats, artifacts, artifact_name):
     """Handles discovering an artifact and applying its effects to the player."""
     if artifact_name in artifacts:
