@@ -49,42 +49,41 @@ def combat_encounter(player_stats, monster_health, has_treasure):
         return None
 
 def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
-    """Simulates a player navigating through a dungeon."""
     for room in dungeon_rooms:
-        if not isinstance(room, tuple) or len(room) != 4:
-            raise TypeError("Each dungeon room must be a tuple of 4 elements: (name, item, challenge_type, challenge_outcome)")
-
-        room_name, item, challenge_type, challenge_outcome = room
-
-        # Add item to inventory if present
+        room_name, item, challenge, challenge_data = room
+        print(f"Entering {room_name}")
+        
         if item:
             inventory.append(item)
-
-        # Process different challenge types
-        if challenge_type == "puzzle":
-            if isinstance(challenge_outcome, tuple) and len(challenge_outcome) == 3:
-                success, fail, health_penalty = challenge_outcome
-                print(success if random.random() < 0.5 else fail)
-                player_stats["health"] -= health_penalty  # Deduct health on failure
-            else:
-                raise ValueError("Invalid challenge_outcome format for puzzle.")
-
-        elif challenge_type == "trap":
-            if isinstance(challenge_outcome, tuple) and len(challenge_outcome) == 3:
-                success, fail, health_penalty = challenge_outcome
-                print(success if random.random() < 0.5 else fail)
-                player_stats["health"] -= health_penalty  # Deduct health for trap
-            else:
-                raise ValueError("Invalid challenge_outcome format for trap.")
-
-        elif challenge_type == "library":
-            new_clue = f"Clue found in {room_name}"
-            find_clue(clues, new_clue)
-
+            print(f"Found item: {item}")
+        
+        if challenge == "puzzle" or challenge == "trap":
+            success, fail, penalty = challenge_data
+            print(f"Encountered a {challenge}: {success} or {fail}")
+            player_stats['health'] -= penalty
+            
+        if challenge == "library":
+            clues_list = [
+                "The treasure is hidden where the dragon sleeps.",
+                "The key lies with the gnome.",
+                "Beware the shadows.",
+                "The amulet unlocks the final door."
+            ]
+            selected_clues = random.sample(clues_list, 2)
+            for clue in selected_clues:
+                clues = find_clue(clues, clue)
+            
+            if "staff_of_wisdom" in inventory:
+                print("With the Staff of Wisdom, you understand the meaning of the clues and can bypass a puzzle challenge!")
+    
     return player_stats, inventory, clues
 
+def display_inventory(inventory):
+    """Displays the player's inventory."""
+    print("Inventory:", ", ".join(inventory))
+
 def main():
-    """Main function that runs the adventure game."""
+    """Main game loop."""
     dungeon_rooms = [
         ("Dusty Library", "key", "puzzle", ("Solved puzzle!", "Puzzle unsolved.", -5)),
         ("Narrow Passage, Creaky Floor", "torch", "trap", ("Avoided trap!", "Triggered trap!", -10)),
@@ -99,14 +98,27 @@ def main():
     clues = set()
     
     artifacts = {
-        "amulet_of_vitality": {"description": "Glowing amulet, life force.", "power": 15, "effect": "increases health"},
-        "ring_of_strength": {"description": "Powerful ring, attack boost.", "power": 10, "effect": "enhances attack"},
-        "staff_of_wisdom": {"description": "Staff of wisdom, ancient.", "power": 5, "effect": "solves puzzles"}
+        "amulet_of_vitality": {
+            "description": "A glowing amulet that enhances your life force.",
+            "power": 15,
+            "effect": "increases health"
+        },
+        "ring_of_strength": {
+            "description": "A powerful ring that boosts your attack damage.",
+            "power": 10,
+            "effect": "enhances attack"
+        },
+        "staff_of_wisdom": {
+            "description": "A staff imbued with ancient wisdom.",
+            "power": 5,
+            "effect": "solves puzzles"
+        }
     }
     
     has_treasure = random.choice([True, False])
+
     display_player_status(player_stats)
-    
+
     if player_stats['health'] > 0:
         treasure_obtained_in_combat = combat_encounter(player_stats, monster_health, has_treasure)
         
@@ -120,11 +132,17 @@ def main():
         
         if player_stats['health'] > 0:
             player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues)
-    
+
     print("\n--- Game End ---")
     display_player_status(player_stats)
-    print("Final Inventory:", inventory)
-    print("Clues:", clues if clues else "No clues.")
+    print("Final Inventory:")
+    display_inventory(inventory)
+    print("Clues:")
+    if clues:
+        for clue in clues:
+            print(f"- {clue}")
+    else:
+        print("No clues.")
 
 if __name__ == "__main__":
     main()
