@@ -4,21 +4,18 @@ def display_player_status(player_stats):
     """Displays the player's current health and attack power."""
     print(f"\nPlayer Status: Health = {player_stats['health']}, Attack = {player_stats['attack']}")
 
-def acquire_item(player_stats, item):
+def acquire_item(inventory, item):
     """Simulate the player acquiring an item."""
-    print(f"You have acquired {item}.")
-    # Example logic for item effects
-    if item == "healing potion":
-        player_stats['health'] += 20
-    return player_stats
+    print(f"You acquired a {item}!")
+    inventory.append(item)
+    return inventory
 
 def display_inventory(inventory):
-    # Check if inventory is empty
+    """Displays the player's inventory."""
     if not inventory:
         print("Your inventory is empty.")
     else:
-        # Display inventory items
-        print(f"Your inventory: ")
+        print("Your inventory:")
         for index, item in enumerate(inventory, start=1):
             print(f"{index}. {item}")
 
@@ -72,8 +69,7 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
         print(f"Entering {room_name}")
         
         if item:
-            inventory.append(item)
-            print(f"Found item: {item}")
+            inventory = acquire_item(inventory, item)
         
         if challenge == "puzzle" or challenge == "trap":
             if challenge_data:
@@ -98,10 +94,6 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
                 print("With the Staff of Wisdom, you understand the meaning of the clues and can bypass a puzzle challenge!")
     
     return player_stats, inventory, clues, artifacts
-
-def display_inventory(inventory):
-    """Displays the player's inventory."""
-    print("Inventory:", ", ".join(inventory))
 
 def main():
     """Main game loop."""
@@ -144,7 +136,7 @@ def main():
         treasure_obtained_in_combat = combat_encounter(player_stats, monster_health, has_treasure)
         
         if treasure_obtained_in_combat:
-            inventory.append("treasure")
+            inventory = acquire_item(inventory, "treasure")
         
         if random.random() < 0.3 and artifacts:
             artifact_name = random.choice(list(artifacts.keys()))
