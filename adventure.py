@@ -4,6 +4,14 @@ def display_player_status(player_stats):
     """Displays the player's current health and attack power."""
     print(f"\nPlayer Status: Health = {player_stats['health']}, Attack = {player_stats['attack']}")
 
+def acquire_item(player_stats, item):
+    """Simulate the player acquiring an item."""
+    print(f"You have acquired {item}.")
+    # Example logic for item effects
+    if item == "healing potion":
+        player_stats['health'] += 20
+    return player_stats
+
 def discover_artifact(player_stats, artifacts, artifact_name):
     """Handles discovering an artifact and applying its effects to the player."""
     if artifact_name in artifacts:
@@ -48,7 +56,7 @@ def combat_encounter(player_stats, monster_health, has_treasure):
         print("You have been defeated...")
         return None
 
-def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
+def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
     for room in dungeon_rooms:
         room_name, item, challenge, challenge_data = room
         print(f"Entering {room_name}")
@@ -58,9 +66,12 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
             print(f"Found item: {item}")
         
         if challenge == "puzzle" or challenge == "trap":
-            success, fail, penalty = challenge_data
-            print(f"Encountered a {challenge}: {success} or {fail}")
-            player_stats['health'] -= penalty
+            if challenge_data:
+                success, fail, penalty = challenge_data
+                print(f"Encountered a {challenge}: {success} or {fail}")
+                player_stats['health'] -= penalty
+            else:
+                print(f"Encountered a {challenge}, but no challenge data.")
             
         if challenge == "library":
             clues_list = [
@@ -76,7 +87,7 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
             if "staff_of_wisdom" in inventory:
                 print("With the Staff of Wisdom, you understand the meaning of the clues and can bypass a puzzle challenge!")
     
-    return player_stats, inventory, clues
+    return player_stats, inventory, clues, artifacts
 
 def display_inventory(inventory):
     """Displays the player's inventory."""
@@ -131,7 +142,7 @@ def main():
             display_player_status(player_stats)
         
         if player_stats['health'] > 0:
-            player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues)
+            player_stats, inventory, clues, artifacts = enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts)
 
     print("\n--- Game End ---")
     display_player_status(player_stats)
